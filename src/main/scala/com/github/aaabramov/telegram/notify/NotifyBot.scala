@@ -1,7 +1,7 @@
 package com.github.aaabramov.telegram.notify
 
 import com.bot4s.telegram.api.RequestHandler
-import com.bot4s.telegram.models.Message
+import com.bot4s.telegram.models.{InlineQueryResultArticle, InputTextMessageContent, Message}
 import com.typesafe.config.Config
 
 import scala.concurrent.Future
@@ -152,11 +152,11 @@ class NotifyBot(
           groupsRepo
             .findOne(msg.userId, groupName)
             .flatMap {
-              case Some(group) if group.users.contains(userToAdd) =>
+              case Some(group) if group.users.exists(_.equalsIgnoreCase(userToAdd)) =>
                 reply {
                   s"""User $userToAdd is already in group $groupName""".stripMargin
                 }
-              case Some(_)                                        =>
+              case Some(_)                                                          =>
 
                 groupsRepo
                   .update(msg.userId, groupName) { group =>
@@ -201,15 +201,15 @@ class NotifyBot(
           groupsRepo
             .findOne(msg.userId, groupName)
             .flatMap {
-              case Some(group) if !group.users.contains(userToRemove) =>
+              case Some(group) if !group.users.exists(_.equalsIgnoreCase(userToRemove)) =>
                 replyMd {
                   s"""User $userToRemove is already in group $groupName""".stripMargin
                 }
-              case Some(_)                                            =>
+              case Some(_)                                                              =>
 
                 groupsRepo
                   .update(msg.userId, groupName) { group =>
-                    group.copy(users = group.users.filterNot(_ == userToRemove))
+                    group.copy(users = group.users.filterNot(_.equalsIgnoreCase(userToRemove)))
                   }
                   .flatMap { _ =>
                     replyMd {
@@ -234,7 +234,39 @@ class NotifyBot(
     reply("To create a new notify group use /create group_name @username1 @username2")
   }
 
+  onInlineQuery { implicit iq =>
+    logger.debug(s"onInlineQuery: $iq")
+
+    groupsRepo
+      .search(UserId(iq.from.id), Option(iq.query).filter(_.nonEmpty))
+      .map {
+        _.map { group =>
+          InlineQueryResultArticle(
+            group.name,
+            group.name,
+            InputTextMessageContent(
+              s"""|Notify ${group.name}:
+                  |
+                  |${group.users.mkString(" ")}""".stripMargin
+            )
+          )
+        }
+      }
+      .flatMap { result =>
+        answerInlineQuery(
+          result,
+          switchPmText = Some("Create new group"),
+          switchPmParameter = Some("new_group")
+        )
+      }
+
+  }
+
   onCommand('help) { implicit msg =>
+    howto()
+  }
+
+  onCommand('start) { implicit msg =>
     howto()
   }
 

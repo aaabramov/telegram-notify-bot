@@ -71,6 +71,17 @@ class GroupsRepo(val db: Database)
     db run query.result.headOption
   }
 
+  def search(userId: UserId, like: Option[String]): Future[Seq[Group]] = {
+    val query =
+      groups
+        .filter(_.userId === userId)
+        .filterOpt(like) { case (table, q) =>
+          table.name like s"%$q%"
+        }
+
+    db run query.result
+  }
+
   def delete(userId: UserId, groupName: String): Future[Option[Group]] = {
     val action =
       groups

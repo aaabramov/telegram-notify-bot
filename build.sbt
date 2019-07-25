@@ -1,7 +1,7 @@
 import TranzzoKeys._
 
 val baseSettings: BaseSettings = BaseSettings(
-  version = Version.mk("0.1.1", persistTo = "version"),
+  version = Version.mk("0.1.2", persistTo = "version"),
   scalaVer = `2.12.8`,
   organization = Tranzzo
 )

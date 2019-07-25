@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: telegram-notify
-          image: eu.gcr.io/requeue/telegram-bot-notify:0.1.1-local-SNAPSHOT
+          image: eu.gcr.io/requeue/telegram-bot-notify:0.1.2-local-SNAPSHOT
           imagePullPolicy: Always
           env:
             - name: JAVA_OPTS
@@ -70,11 +70,3 @@ spec:
     - name: http-telegram-notify
       port: 8000
       targetPort: 8000
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: bot-credentials
-type: Opaque
-data:
-  bot-token: ABCDE
