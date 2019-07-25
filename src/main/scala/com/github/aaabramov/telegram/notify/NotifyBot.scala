@@ -15,7 +15,7 @@ class NotifyBot(
                ) extends BaseBot {
 
   override val webhookUrl: String = config.getString("services.telegram.webhookUrl")
-  override val port: Int = config.getInt("services.telegram.port")
+  override val port: Int = config.getInt("services.telegram.webhookPort")
 
   onCommand('create) { implicit msg =>
     withArgs { args =>
@@ -134,7 +134,7 @@ class NotifyBot(
   onCommand('add) { implicit msg =>
     withArgs { args =>
       if (args.size < 2) {
-        replyMd {
+        reply {
           """|To add a member to existing groups use the following command:
              |/add group_name @username1""".stripMargin
         }
@@ -143,7 +143,7 @@ class NotifyBot(
         val userToAdd = args(1)
 
         if (!userToAdd.startsWith("@")) {
-          replyMd {
+          reply {
             """|To add a member to existing groups use the following command:
                |/add group_name @username1""".stripMargin
           }
@@ -152,7 +152,7 @@ class NotifyBot(
             .findOne(msg.userId, groupName)
             .flatMap {
               case Some(group) if group.users.contains(userToAdd) =>
-                replyMd {
+                reply {
                   s"""User $userToAdd is already in group $groupName""".stripMargin
                 }
               case Some(_)                                        =>
@@ -162,8 +162,57 @@ class NotifyBot(
                     group.copy(users = userToAdd :: group.users)
                   }
                   .flatMap { _ =>
-                    replyMd {
+                    reply {
                       s"""Done! I have added $userToAdd to group $groupName""".stripMargin
+                    }
+                  }
+
+              case _ =>
+                reply {
+                  s"""|You have no group named $groupName.
+                      |In order to create one use the following command:
+                      |/create $groupName @username1 @username2""".stripMargin
+                }
+            }
+        }
+
+      }
+    }
+  }
+
+  onCommand('remove) { implicit msg =>
+    withArgs { args =>
+      if (args.size < 2) {
+        reply {
+          """|To remove a member from group use the following command:
+             |/remove group_name @username1""".stripMargin
+        }
+      } else {
+        val groupName = args.head
+        val userToRemove = args(1)
+
+        if (!userToRemove.startsWith("@")) {
+          reply {
+            """|To remove a member from group use the following command:
+               |/remove group_name @username1""".stripMargin
+          }
+        } else {
+          groupsRepo
+            .findOne(msg.userId, groupName)
+            .flatMap {
+              case Some(group) if !group.users.contains(userToRemove) =>
+                replyMd {
+                  s"""User $userToRemove is already in group $groupName""".stripMargin
+                }
+              case Some(_)                                        =>
+
+                groupsRepo
+                  .update(msg.userId, groupName) { group =>
+                    group.copy(users = group.users.filterNot(_ == userToRemove))
+                  }
+                  .flatMap { _ =>
+                    replyMd {
+                      s"""Done! I have removed $userToRemove from group $groupName""".stripMargin
                     }
                   }
 
