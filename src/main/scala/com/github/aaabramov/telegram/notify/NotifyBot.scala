@@ -16,6 +16,7 @@ class NotifyBot(
 
   override val webhookUrl: String = config.getString("services.telegram.webhookUrl")
   override val port: Int = config.getInt("services.telegram.webhookPort")
+  override val interfaceIp: String = "0.0.0.0"
 
   onCommand('create) { implicit msg =>
     withArgs { args =>
@@ -204,7 +205,7 @@ class NotifyBot(
                 replyMd {
                   s"""User $userToRemove is already in group $groupName""".stripMargin
                 }
-              case Some(_)                                        =>
+              case Some(_)                                            =>
 
                 groupsRepo
                   .update(msg.userId, groupName) { group =>
