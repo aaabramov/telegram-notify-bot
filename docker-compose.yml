@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:9.6-alpine
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: telegram_notify_service
+    ports:
+      - 5432:5432
