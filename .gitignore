@@ -3,3 +3,5 @@
 .idea/
 version
 token.txt
+project/
+target/
