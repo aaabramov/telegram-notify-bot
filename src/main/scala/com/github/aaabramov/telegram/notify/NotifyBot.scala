@@ -256,7 +256,9 @@ class NotifyBot(
         answerInlineQuery(
           result,
           switchPmText = Some("Create new group"),
-          switchPmParameter = Some("new_group")
+          switchPmParameter = Some("new_group"),
+          cacheTime = Some(0),
+          isPersonal = Some(true)
         )
       }
 

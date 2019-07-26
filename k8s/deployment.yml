@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: telegram-notify
-          image: eu.gcr.io/requeue/telegram-bot-notify:0.1.2-local-SNAPSHOT
+          image: eu.gcr.io/requeue/telegram-bot-notify:0.1.3-local-SNAPSHOT
           imagePullPolicy: Always
           env:
             - name: JAVA_OPTS
